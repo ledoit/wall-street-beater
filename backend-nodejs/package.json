@@ -1,0 +1,18 @@
+{
+  "name": "wsb-price-fetcher",
+  "version": "1.0.0",
+  "description": "Fast and accurate stock price fetcher for WSB",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0"
+  },
+  "keywords": ["stock", "price", "finance", "wsb"],
+  "author": "WSB Team",
+  "license": "MIT"
+}

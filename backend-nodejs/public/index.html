@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WSB Price Fetcher</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .app-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .app-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .app-main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .price-form {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .symbol-input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: border-color 0.2s;
+        }
+
+        .symbol-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .symbol-input:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+        }
+
+        .fetch-button {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .fetch-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .fetch-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .auto-refresh input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #c33;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .error-close {
+            background: none;
+            border: none;
+            color: #c33;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 1rem;
+        }
+
+        .error-close:hover {
+            color: #a00;
+        }
+
+        .price-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .price-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .price-header h2 {
+            font-size: 2rem;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .source {
+            background: #f0f0f0;
+            color: #666;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .price-main {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .current-price {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-change {
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .price-change.positive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .price-change.negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .price-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .examples {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .examples h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .example-symbols {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .example-button {
+            padding: 0.75rem 1rem;
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            color: #333;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .example-button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+
+        .example-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Main Search Styles */
+
+        .stock-groups {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 1rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .stock-groups h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .group-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .group-button {
+            padding: 0.75rem 1rem;
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            color: #333;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            flex: 0 0 auto;
+            min-width: 120px;
+        }
+
+        .group-button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+
+        .group-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Multi Results */
+        .multi-results {
+            margin-bottom: 2rem;
+        }
+
+        .multi-results h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .price-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .price-card-small {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+
+        .price-card-small:hover {
+            transform: translateY(-2px);
+        }
+
+        .price-header-small {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .price-header-small h4 {
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .source-small {
+            background: #f0f0f0;
+            color: #666;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .price-main-small {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .current-price-small {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-change-small {
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        .price-change-small.positive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .price-change-small.negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .price-details-small {
+            border-top: 1px solid #e1e5e9;
+            padding-top: 0.75rem;
+        }
+
+        .detail-item-small {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .label-small {
+            color: #666;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        .value-small {
+            color: #333;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 1.5rem;
+            }
+            
+            .app-header h1 {
+                font-size: 2rem;
+            }
+            
+            .app-main {
+                padding: 1rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .price-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .current-price {
+                font-size: 2.5rem;
+            }
+            
+            
+            .group-buttons {
+                max-height: 150px;
+            }
+            
+            .price-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .price-card-small {
+                padding: 1rem;
+            }
+            
+            .current-price-small {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [symbols, setSymbols] = useState('');
+            const [priceData, setPriceData] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+            const [groups, setGroups] = useState({});
+
+            const parseSymbols = (input) => {
+                // Handle any combination of spaces, commas, and other separators
+                return input
+                    .split(/[,\s]+/) // Split on commas or spaces
+                    .map(s => s.trim().toUpperCase()) // Trim and uppercase
+                    .filter(s => s.length > 0) // Remove empty strings
+                    .join(',');
+            };
+
+            const fetchPrices = async (symbolsInput) => {
+                setLoading(true);
+                setError(null);
+
+                try {
+                    // Parse symbols from any format (spaces, commas, mixed)
+                    const cleanSymbols = parseSymbols(symbolsInput);
+                    
+                    if (!cleanSymbols) {
+                        setError('Please enter at least one symbol');
+                        return;
+                    }
+
+                    const response = await axios.get(`/prices?symbols=${cleanSymbols}`);                                                                             
+                    if (response.data.success) {
+                        setPriceData(response.data.prices);
+                        if (response.data.errors) {
+                            setError(`Some symbols failed: ${response.data.errors.join(', ')}`);                                                           
+                        }
+                    } else {
+                        setError('Failed to fetch any prices');
+                    }
+                } catch (err) {
+                    setError(err.response?.data?.message || 'Failed to fetch prices');                                                                     
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const fetchGroups = async () => {
+                try {
+                    const response = await axios.get('/groups');
+                    setGroups(response.data);
+                } catch (err) {
+                    console.error('Failed to fetch groups:', err);
+                }
+            };
+
+            const loadGroup = (groupSymbols) => {
+                setSymbols(groupSymbols.join(' '));
+                fetchPrices(groupSymbols.join(' '));
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                fetchPrices(symbols);
+            };
+
+            useEffect(() => {
+                fetchGroups();
+            }, []);
+
+            const formatPrice = (price) => {
+                return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                }).format(price);
+            };
+
+            const formatChange = (change, isPercent = false) => {
+                const sign = change >= 0 ? '+' : '';
+                const formatted = isPercent ? `${sign}${change.toFixed(2)}%` : `${sign}${change.toFixed(2)}`;
+                return formatted;
+            };
+
+            return (
+                <div className="app">
+                    <header className="app-header">
+                        <h1>🚀 WSB Price Fetcher</h1>
+                        <p>Get real-time stock prices fast and accurately</p>
+                    </header>
+
+                    <main className="app-main">
+                        {/* Main Search Form */}
+                        <form onSubmit={handleSubmit} className="price-form">                                                                               
+                            <div className="input-group">
+                                <input
+                                    type="text"
+                                    value={symbols}
+                                    onChange={(e) => setSymbols(e.target.value)}                                                               
+                                    placeholder="ENTER SYMBOLS (E.G. AAPL, MSFT, TLSA, ETC.)"                                                                     
+                                    className="symbol-input"
+                                    disabled={loading}
+                                />
+                                <button type="submit" disabled={loading} className="fetch-button">                                                          
+                                    {loading ? 'Fetching...' : 'Get Prices'} 
+                                </button>
+                            </div>
+                        </form>
+
+                        {/* Stock Groups */}
+                        <div className="stock-groups">
+                            <h3>Quick Groups</h3>
+                            <div className="group-buttons">
+                                <button
+                                    onClick={() => loadGroup(['AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'NFLX', 'AMZN', 'TSLA'])}
+                                    className="group-button"        
+                                    disabled={loading}
+                                    title="Major technology companies"
+                                >
+                                    Tech Giants
+                                </button>
+                                <button
+                                    onClick={() => loadGroup(['JPM', 'BAC', 'WFC', 'GS', 'MS', 'C', 'AXP', 'V'])}
+                                    className="group-button"        
+                                    disabled={loading}
+                                    title="Banking and financial services"
+                                >
+                                    Financial Sector
+                                </button>
+                                <button
+                                    onClick={() => loadGroup(['JNJ', 'PFE', 'UNH', 'ABBV', 'MRK', 'TMO', 'ABT', 'LLY'])}
+                                    className="group-button"        
+                                    disabled={loading}
+                                    title="Pharmaceutical and healthcare companies"
+                                >
+                                    Healthcare
+                                </button>
+                                <button
+                                    onClick={() => loadGroup(['XOM', 'CVX', 'COP', 'EOG', 'SLB', 'KMI', 'PSX', 'VLO'])}
+                                    className="group-button"        
+                                    disabled={loading}
+                                    title="Oil, gas, and energy companies"
+                                >
+                                    Energy Sector
+                                </button>
+                                <button
+                                    onClick={() => loadGroup(['WMT', 'TGT', 'COST', 'HD', 'LOW', 'NKE', 'SBUX', 'MCD'])}
+                                    className="group-button"        
+                                    disabled={loading}
+                                    title="Retail and consumer goods"
+                                >
+                                    Retail & Consumer
+                                </button>
+                                <button
+                                    onClick={() => loadGroup(['COIN', 'MSTR', 'RIOT', 'MARA', 'HUT', 'BITF', 'CAN', 'HIVE'])}
+                                    className="group-button"        
+                                    disabled={loading}
+                                    title="Cryptocurrency and blockchain companies"
+                                >
+                                    Crypto-Related
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Error Messages */}
+                        {error && (
+                            <div className="error-message">
+                                <span>❌ {error}</span>
+                                <button 
+                                    className="error-close" 
+                                    onClick={() => setError(null)}
+                                    title="Close error"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Results */}
+                        {priceData.length > 0 && (
+                            <div className="multi-results">
+                                <h3>Results ({priceData.length} stocks)</h3>                                                                               
+                                <div className="price-grid">
+                                    {priceData.map((stock, index) => (     
+                                        <div key={index} className="price-card-small">                                                                          
+                                            <div className="price-header-small">
+                                                <h4>{stock.symbol}</h4>
+                                                <span className="source-small">{stock.source}</span>                                                            
+                                            </div>
+
+                                            <div className="price-main-small">  
+                                                <div className="current-price-small">                                                                           
+                                                    {formatPrice(stock.price)}  
+                                                </div>
+
+                                                {stock.change_24h !== null && ( 
+                                                    <div className={`price-change-small ${stock.change_24h >= 0 ? 'positive' : 'negative'}`}>                   
+                                                        {formatChange(stock.change_24h)} ({formatChange(stock.change_percent_24h || 0, true)})                  
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="price-details-small">                                                                               
+                                                <div className="detail-item-small">                                                                             
+                                                    <span className="label-small">Updated:</span>                                                               
+                                                    <span className="value-small">                                                                              
+                                                        {new Date(stock.timestamp * 1000).toLocaleTimeString()}                                                 
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Examples */}
+                        <div className="examples">
+                            <h3>Try these symbols:</h3>
+                            <div className="example-symbols">
+                                {['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'NFLX'].map(exampleSymbol => (                                   
+                                    <button
+                                        key={exampleSymbol}
+                                        onClick={() => {
+                                            setSymbols(exampleSymbol);       
+                                            fetchPrices(exampleSymbol);      
+                                        }}
+                                        className="example-button"
+                                        disabled={loading}
+                                    >
+                                        {exampleSymbol}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
