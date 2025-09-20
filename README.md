@@ -1,4 +1,4 @@
-# 🚀 WSB - Wall Street Beater
+# 🚀 Wall Street Beater
 
 A fast, accurate, and reliable stock price fetcher built with Node.js and React - **unified in a single server**.
 

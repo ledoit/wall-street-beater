@@ -1,0 +1,18 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Force Windows line endings for batch files
+*.bat text eol=crlf
+
+# Force Unix line endings for shell scripts
+*.sh text eol=lf
+
+# Force Unix line endings for package files
+package.json text eol=lf
+package-lock.json text eol=lf
+
+# Force Unix line endings for source files
+*.js text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.md text eol=lf

@@ -14,7 +14,7 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
-    service: 'WSB Price Fetcher',
+    service: 'Wall Street Beater Price Fetcher',
     timestamp: new Date().toISOString()
   });
 });
@@ -236,7 +236,7 @@ app.get('*', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 WSB Price Fetcher running on http://localhost:${PORT}`);
+  console.log(`🚀 Wall Street Beater Price Fetcher running on http://localhost:${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`📈 Get price: http://localhost:${PORT}/price/AAPL`);
   console.log(`📊 Get multiple: http://localhost:${PORT}/prices?symbols=AAPL,TSLA,MSFT`);

@@ -1,5 +1,5 @@
 @echo off
-echo 🚀 Starting WSB Price Fetcher...
+echo 🚀 Starting Wall Street Beater Price Fetcher...
 echo.
 
 echo 📦 Installing dependencies...
@@ -13,7 +13,7 @@ if errorlevel 1 (
 
 echo.
 echo 🚀 Starting unified server...
-echo ✅ WSB Price Fetcher is starting!
+echo ✅ Wall Street Beater Price Fetcher is starting!
 echo 🌐 Application: http://localhost:3000
 echo 📊 API: http://localhost:3000/price/AAPL
 echo.
