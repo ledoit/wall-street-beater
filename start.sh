@@ -4,7 +4,7 @@ echo "🚀 Starting Wall Street Beater Price Fetcher..."
 echo
 
 echo "📦 Installing dependencies..."
-cd backend-nodejs
+cd app
 npm install
 if [ $? -ne 0 ]; then
     echo "❌ Failed to install dependencies"

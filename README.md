@@ -6,12 +6,13 @@ A fast, accurate, and reliable stock price fetcher built with Node.js and React 
 
 - **Lightning Fast**: Built with Node.js for maximum performance
 - **Real-time Data**: Fetch current stock prices instantly
-- **Multiple Sources**: Yahoo Finance integration with fallback options
-- **Beautiful UI**: Modern React frontend with real-time updates
-- **Auto-refresh**: Optional automatic price updates every 5 seconds
-- **Error Handling**: Robust error handling and user feedback
+- **Multi-Symbol Search**: Search multiple stocks simultaneously with flexible input
+- **Quick Groups**: Pre-defined stock categories for instant loading
+- **Beautiful UI**: Modern React frontend with responsive design
+- **Flexible Input**: Supports space-separated, comma-separated, or mixed symbol formats
+- **Error Handling**: Robust error handling with dismissible notifications
 - **Unified Server**: Single port (3000) serves both API and frontend
-- **Standalone**: No Docker required - runs natively
+- **Standalone**: No Docker required - runs natively on any platform
 
 ## 🚀 Quick Start
 
@@ -32,7 +33,7 @@ start.bat
 ### Option 2: Manual Start
 
 ```bash
-cd backend-nodejs
+cd app
 
 # Install dependencies
 npm install
@@ -45,32 +46,40 @@ npm start
 
 ## 📊 API Endpoints
 
-### Get Single Price
+### Get Multiple Stock Prices
 ```bash
-GET /price/{symbol}
+GET /prices?symbols=AAPL,TSLA,MSFT
 ```
 
 **Example:**
 ```bash
-curl http://localhost:3000/price/AAPL
+curl "http://localhost:3000/prices?symbols=AAPL,TSLA,MSFT"
 ```
 
 **Response:**
 ```json
 {
-  "symbol": "AAPL",
-  "price": 150.25,
-  "currency": "USD",
-  "timestamp": 1703123456,
-  "source": "yahoo",
-  "change_24h": 2.15,
-  "change_percent_24h": 1.45
+  "success": true,
+  "prices": [
+    {
+      "symbol": "AAPL",
+      "price": 150.25,
+      "currency": "USD",
+      "timestamp": 1703123456,
+      "source": "yahoo",
+      "change_24h": 2.15,
+      "change_percent_24h": 1.45
+    }
+  ],
+  "total_requested": 3,
+  "total_successful": 3,
+  "total_failed": 0
 }
 ```
 
-### Get Multiple Prices
+### Get Stock Groups
 ```bash
-GET /prices?symbols=AAPL,TSLA,MSFT
+GET /groups
 ```
 
 ### Health Check
@@ -83,82 +92,96 @@ GET /health
 ### Backend
 - **Node.js**: High-performance JavaScript runtime
 - **Express**: Fast web framework
-- **Axios**: HTTP client
+- **Axios**: HTTP client for external API calls
 - **CORS**: Cross-origin resource sharing
 
 ### Frontend
-- **React 18**: Modern UI library
-- **TypeScript**: Type safety
-- **Vite**: Fast build tool
-- **Axios**: HTTP client
-- **CSS3**: Modern styling
+- **React 18**: Modern UI library (via CDN)
+- **Babel**: JSX transformation (via CDN)
+- **Axios**: HTTP client for API calls
+- **CSS3**: Modern responsive styling
 
-### Infrastructure
+### Architecture
 - **Unified Server**: Single Express server serves both API and frontend
 - **Static Files**: React app served as static HTML with inline JavaScript
 - **No Build Process**: Direct HTML/JS execution - no compilation needed
 - **Cross-platform**: Windows, Mac, and Linux support
 
-## 🎯 Supported Symbols
+## 🎯 Supported Input Formats
 
-The application supports all major stock symbols:
-- **Tech**: AAPL, MSFT, GOOGL, META, NVDA, NFLX
-- **Automotive**: TSLA, F, GM
-- **Finance**: JPM, BAC, WFC, GS
-- **Retail**: AMZN, WMT, TGT, COST
-- **And many more...**
+The application accepts symbols in any of these formats:
+- **Space-separated**: `AAPL TSLA MSFT`
+- **Comma-separated**: `AAPL,TSLA,MSFT`
+- **Mixed format**: `AAPL, TSLA MSFT GOOGL`
+- **Messy input**: `  AAPL  ,  TSLA  ,  MSFT  ` (automatically cleaned)
+
+## 🏷️ Quick Groups
+
+Pre-defined stock categories for instant loading:
+- **Tech Giants**: AAPL, MSFT, GOOGL, META, NVDA, NFLX, AMZN, TSLA
+- **Financial Sector**: JPM, BAC, WFC, GS, MS, C, AXP, V
+- **Healthcare**: JNJ, PFE, UNH, ABBV, MRK, TMO, ABT, LLY
+- **Energy Sector**: XOM, CVX, COP, EOG, SLB, KMI, PSX, VLO
+- **Retail & Consumer**: WMT, TGT, COST, HD, LOW, NKE, SBUX, MCD
+- **Crypto-Related**: COIN, MSTR, RIOT, MARA, HUT, BITF, CAN, HIVE
+
+## 📈 Performance
+
+- **Response Time**: < 100ms for price fetches
+- **Concurrent Requests**: Handles multiple simultaneous requests
+- **Memory Usage**: < 50MB for the entire application
+- **CPU Usage**: Minimal overhead with async processing
+- **No Dependencies**: Runs without Docker or complex setup
+
+## 🚀 Deployment
+
+### Vercel Deployment
+
+1. **Connect your GitHub repository** to Vercel
+2. **Framework Preset**: Select "Other" or "Node.js"
+3. **Build Command**: `cd app && npm install`
+4. **Output Directory**: `app/public`
+5. **Install Command**: `cd app && npm install`
+
+### Alternative Vercel Configuration
+
+Create `vercel.json` in the root directory:
+```json
+{
+  "buildCommand": "cd app && npm install",
+  "outputDirectory": "app/public",
+  "installCommand": "cd app && npm install",
+  "devCommand": "cd app && npm start"
+}
+```
+
+### Traditional Deployment
+
+1. **Clone the repository**
+2. **Install dependencies**: `cd app && npm install`
+3. **Start the server**: `npm start`
+4. **Configure reverse proxy** (nginx, Apache, etc.)
+5. **Set up SSL certificate** for HTTPS
 
 ## 🔧 Configuration
 
 ### Environment Variables
 
-**Backend:**
-- `RUST_LOG`: Log level (default: info)
+- `PORT`: Server port (default: 3000)
+- `NODE_ENV`: Environment mode (development/production)
 
-**Frontend:**
-- `VITE_API_URL`: Backend API URL (default: http://localhost:3000)
+### Customization
 
-### Docker Configuration
-
-The application uses Docker Compose with:
-- **Backend**: Port 3000
-- **Frontend**: Port 3001
-- **Health Checks**: Automatic service monitoring
-
-## 📈 Performance
-
-- **Response Time**: < 100ms for price fetches
-- **Concurrent Requests**: Handles 1000+ simultaneous requests
-- **Memory Usage**: < 50MB for backend
-- **CPU Usage**: Minimal overhead with async processing
-
-## 🚀 Deployment
-
-### Production Deployment
-
-1. **Build and push Docker images:**
-   ```bash
-   docker-compose build
-   docker-compose push
-   ```
-
-2. **Deploy to your cloud provider:**
-   - AWS ECS
-   - Google Cloud Run
-   - Azure Container Instances
-   - Kubernetes
-
-3. **Configure environment variables:**
-   - Set production API URLs
-   - Configure logging levels
-   - Set up monitoring
+- **Add new stock groups**: Edit the `/groups` endpoint in `server.js`
+- **Modify UI styling**: Edit the CSS in `public/index.html`
+- **Add new features**: Extend the React components in `public/index.html`
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
+4. Test thoroughly
 5. Submit a pull request
 
 ## 📝 License
@@ -167,9 +190,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🆘 Support
 
-- **Issues**: Report bugs and request features
-- **Discussions**: Ask questions and share ideas
-- **Documentation**: Check the README and code comments
+- **Issues**: Report bugs and request features on GitHub
+- **Documentation**: Check this README and code comments
+- **Community**: Join discussions and share ideas
 
 ---
 

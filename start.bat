@@ -3,7 +3,7 @@ echo 🚀 Starting Wall Street Beater Price Fetcher...
 echo.
 
 echo 📦 Installing dependencies...
-cd backend-nodejs
+cd app
 call npm install
 if errorlevel 1 (
     echo ❌ Failed to install dependencies
