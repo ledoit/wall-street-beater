@@ -1,0 +1,19 @@
+{
+  "name": "wall-street-beater",
+  "version": "1.0.0",
+  "description": "Fast and accurate stock price fetcher - Wall Street Beater",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "cd app && node server.js",
+    "dev": "cd app && node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0"
+  },
+  "keywords": ["stock", "price", "finance", "wall-street-beater"],
+  "author": "Wall Street Beater Team",
+  "license": "MIT"
+}
+

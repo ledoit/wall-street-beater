@@ -227,18 +227,24 @@ async function fetchMockPrice(symbol) {
 }
 
 // Serve static files only for specific routes (not catch-all)
-app.use('/static', express.static(path.join(__dirname, 'public')));
+const publicPath = path.join(__dirname, 'public');
+app.use('/static', express.static(publicPath));
 
 // Serve React app for all non-API routes (must be absolutely last)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(publicPath, 'index.html'));
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Wall Street Beater Price Fetcher running on http://localhost:${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`📈 Get price: http://localhost:${PORT}/price/AAPL`);
-  console.log(`📊 Get multiple: http://localhost:${PORT}/prices?symbols=AAPL,TSLA,MSFT`);
-  console.log(`🎨 Frontend: http://localhost:${PORT}`);
-});
+// Export app for serverless functions (Vercel)
+module.exports = app;
+
+// Start server only if not in serverless environment
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Wall Street Beater Price Fetcher running on http://localhost:${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`📈 Get price: http://localhost:${PORT}/price/AAPL`);
+    console.log(`📊 Get multiple: http://localhost:${PORT}/prices?symbols=AAPL,TSLA,MSFT`);
+    console.log(`🎨 Frontend: http://localhost:${PORT}`);
+  });
+}

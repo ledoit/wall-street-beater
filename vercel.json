@@ -1,7 +1,16 @@
 {
-  "buildCommand": "cd app && npm install",
-  "outputDirectory": "app/public",
-  "installCommand": "cd app && npm install",
-  "devCommand": "cd app && npm start",
-  "framework": "other"
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.js"
+    }
+  ],
+  "framework": null
 }
